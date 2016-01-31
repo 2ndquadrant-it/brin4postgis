@@ -1,0 +1,43 @@
+{
+   "name": "brin4postgis",
+   "abstract": "An extension defining ops class for PostGIS geometry/box datatype to use BRIN index",
+   "version": "__VERSION__",
+   "maintainer": "Giuseppe Broccolo <giuseppe.broccolo@2ndquadrant.it>",
+   "license": "postgresql",
+   "release_status": "unstable",
+   "provides": {
+      "brin4postgis": {
+         "abstract": "An extension defining ops class for PostGIS geometry datatype to use BRIN index.",
+         "file": "brin4postgis.sql",
+         "docfile": "README.md",
+         "version": "__VERSION__"
+      }
+   },
+   "resources": {
+      "bugtracker": {
+         "web": ""
+      },
+      "repository": {
+        "url": "", 
+        "web":  "",
+        "type": "git"
+      }
+   },
+   "prereqs": {
+       "runtime": {
+           "requires": {
+               "PostgreSQL": "9.5.0"
+           }
+       }
+   },
+   "generated_by": "Giuseppe Broccolo",
+   "meta-spec": {
+      "version": "0.0.1",
+      "url": "http://pgxn.org/meta/spec.txt"
+   },
+   "tags": [
+      "index",
+      "brin",
+      "geometry",
+   ]
+}

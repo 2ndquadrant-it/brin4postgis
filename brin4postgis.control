@@ -1,0 +1,5 @@
+# brin4postgis extension
+comment = 'BRIN indexes for PostGIS'
+default_version = '0.0.1'
+module_pathname = '$libdir/brin4postgis'
+relocatable = true

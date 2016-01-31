@@ -1,0 +1,101 @@
+-- Test variables
+\set points_count 1000000
+\set box_xmin -10.
+\set box_ymin -10.
+\set box_zmin -10.
+\set box_xmax 10.
+\set box_ymax 10.
+\set box_zmax 10.
+CREATE EXTENSION postgis;
+CREATE EXTENSION brin4postgis;
+-- Create test environment
+CREATE TABLE points(id serial PRIMARY KEY, x double precision DEFAULT -100 + random() * 200., y double precision DEFAULT -100 + random() * 200., z double precision DEFAULT -100 + random() * 200.);
+INSERT INTO points(id) SELECT n FROM generate_series(1, :points_count) f(n);
+CREATE TABLE postgis_points AS SELECT id, ST_MakePoint(x, y, z) AS point FROM points;
+-- Test without index
+EXPLAIN (TIMING false) SELECT count(*) FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Aggregate  (cost=322401.95..322401.96 rows=1 width=0)
+   ->  Seq Scan on postgis_points  (cost=0.00..320918.28 rows=593471 width=0)
+         Filter: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+(3 rows)
+
+CREATE TABLE brin_compare_one AS SELECT id FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+-- CREATE THE INDEX
+CREATE INDEX brin_point_idx ON postgis_points USING brin(box3d(point) brin_geometry_inclusion_ops_box3d);
+-- Test with index
+EXPLAIN (TIMING false) SELECT count(*) FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+                                        QUERY PLAN                                         
+-------------------------------------------------------------------------------------------
+ Aggregate  (cost=145733.00..145733.01 rows=1 width=0)
+   ->  Bitmap Heap Scan on postgis_points  (cost=3887.00..144483.00 rows=500000 width=0)
+         Recheck Cond: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+         ->  Bitmap Index Scan on brin_point_idx  (cost=0.00..3762.00 rows=500000 width=0)
+               Index Cond: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+(5 rows)
+
+CREATE TABLE brin_compare_two AS SELECT id FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+-- Compare results
+SELECT count(*) FROM brin_compare_one WHERE id NOT IN (SELECT id FROM brin_compare_two);
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(*) FROM brin_compare_two WHERE id NOT IN (SELECT id FROM brin_compare_one);
+ count 
+-------
+     0
+(1 row)
+
+-- Append other points
+INSERT INTO points(id) SELECT n FROM generate_series(:points_count + 1, :points_count * 2) f(n);
+INSERT INTO postgis_points SELECT id, ST_MakePoint(x, y, z) AS point FROM points where id > :points_count;
+-- Empty test tables
+TRUNCATE brin_compare_one;
+TRUNCATE brin_compare_two;
+-- Test with index
+EXPLAIN (TIMING false) SELECT count(*) FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+                                         QUERY PLAN                                         
+--------------------------------------------------------------------------------------------
+ Aggregate  (cost=291454.00..291454.01 rows=1 width=0)
+   ->  Bitmap Heap Scan on postgis_points  (cost=7762.00..288954.00 rows=1000000 width=0)
+         Recheck Cond: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+         ->  Bitmap Index Scan on brin_point_idx  (cost=0.00..7512.00 rows=1000000 width=0)
+               Index Cond: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+(5 rows)
+
+CREATE TABLE brin_compare_two AS SELECT id FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+ERROR:  relation "brin_compare_two" already exists
+--DROP THE INDEX
+DROP INDEX brin_point_idx;
+-- Test without index
+EXPLAIN (TIMING false) SELECT count(*) FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Aggregate  (cost=546192.00..546192.01 rows=1 width=0)
+   ->  Seq Scan on postgis_points  (cost=0.00..543692.00 rows=1000000 width=0)
+         Filter: (box3d(point) @ 'BOX3D(-10 -10 -10,10 10 10)'::box3d)
+(3 rows)
+
+CREATE TABLE brin_compare_one AS SELECT id FROM postgis_points WHERE box3d(point) @ ST_3DMakeBox(ST_MakePoint(:box_xmin, :box_ymin, :box_zmin), ST_MakePoint(:box_xmax, :box_ymax, :box_zmax));
+ERROR:  relation "brin_compare_one" already exists
+-- Compare results
+SELECT count(*) FROM brin_compare_one WHERE id NOT IN (SELECT id FROM brin_compare_two);
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(*) FROM brin_compare_two WHERE id NOT IN (SELECT id FROM brin_compare_one);
+ count 
+-------
+     0
+(1 row)
+
+-- Clean working environment
+--DROP TABLE postgis_points;
+DROP TABLE points;
+DROP TABLE brin_compare_one;
+DROP TABLE brin_compare_two;

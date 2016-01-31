@@ -1,0 +1,21 @@
+results/
+
+# Python
+*.py[co]
+__pycache__/
+
+# Eclipse
+.project
+.pydevproject
+.settings
+
+# Emacs
+*~
+[#]*[#]
+
+# vim
+*.sw[po]
+
+# OSX
+._*
+.DS_Store
