@@ -54,9 +54,9 @@ CREATE OR REPLACE FUNCTION intersects(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF (st_xmin(a) < st_xmin(b) AND st_xmin(b) <= st_xmax(a)) OR (st_xmin(a) >= st_xmin(b) AND st_xmin(a) <= st_xmax(b)) THEN
-      IF (st_ymin(a) < st_ymin(b) AND st_ymin(b) <= st_ymax(a)) OR (st_ymin(a) >= st_ymin(b) AND st_ymin(a) <= st_ymax(b)) THEN
-        IF (st_zmin(a) < st_zmin(b) AND st_zmin(b) <= st_zmax(a)) OR (st_zmin(a) >= st_zmin(b) AND st_zmin(a) <= st_zmax(b)) THEN
+    IF (st_xmin(a) <= st_xmin(b) AND st_xmin(b) <= st_xmax(a)) OR (st_xmin(a) >= st_xmin(b) AND st_xmin(a) <= st_xmax(b)) THEN
+      IF (st_ymin(a) <= st_ymin(b) AND st_ymin(b) <= st_ymax(a)) OR (st_ymin(a) >= st_ymin(b) AND st_ymin(a) <= st_ymax(b)) THEN
+        IF (st_zmin(a) <= st_zmin(b) AND st_zmin(b) <= st_zmax(a)) OR (st_zmin(a) >= st_zmin(b) AND st_zmin(a) <= st_zmax(b)) THEN
           RETURN true;
         END IF;
       END IF;
