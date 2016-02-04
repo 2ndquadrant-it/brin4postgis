@@ -1,0 +1,17 @@
+CREATE EXTENSION
+CREATE EXTENSION
+CREATE EXTENSION
+ ?column? 
+----------
+ t
+(1 row)
+
+ ?column? 
+----------
+ f
+(1 row)
+
+ ?column? 
+----------
+ t
+(1 row)
