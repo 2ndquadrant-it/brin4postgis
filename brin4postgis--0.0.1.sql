@@ -2,251 +2,411 @@
 -- N-D GEOMETRY Operators
 -- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 
-CREATE OR REPLACE FUNCTION is_overleft(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overleft_wrap(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmax(a) <= st_xmin(b) THEN
-      RETURN true;
-    END IF;   
-
-    RETURN false;
+    RETURN a::geometry &< b::geometry;
   END;  
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_overright(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overleft_wrap(a box3d, b geometry)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) >= st_xmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry &< b;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_left(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overleft_wrap(a geometry, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmax(a) < st_xmin(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a &< b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_right(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overright_wrap(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) > st_xmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry &> b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION intersects(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overright_wrap(a box3d, b geometry)
 RETURNS boolean AS
 $$
   BEGIN
-    IF (st_xmin(a) <= st_xmin(b) AND st_xmin(b) <= st_xmax(a)) OR (st_xmin(a) >= st_xmin(b) AND st_xmin(a) <= st_xmax(b)) THEN
-      IF (st_ymin(a) <= st_ymin(b) AND st_ymin(b) <= st_ymax(a)) OR (st_ymin(a) >= st_ymin(b) AND st_ymin(a) <= st_ymax(b)) THEN
-        IF (st_zmin(a) <= st_zmin(b) AND st_zmin(b) <= st_zmax(a)) OR (st_zmin(a) >= st_zmin(b) AND st_zmin(a) <= st_zmax(b)) THEN
-          RETURN true;
-        END IF;
-      END IF;
-    END IF;
-    
-    RETURN false;
+    RETURN a::geometry &> b;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_thesame(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_overright_wrap(a geometry, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) = st_xmin(b) AND st_ymin(a) = st_ymin(b) AND st_zmin(a) = st_zmin(b) THEN
-      IF st_xmax(a) = st_xmax(b) AND st_ymax(a) = st_ymax(b) AND st_zmax(a) = st_zmax(b) THEN
-        RETURN true;
-      END IF;
-    END IF;
-
-    RETURN false;
+    RETURN a &> b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION contains(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_left_wrap(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(b) >= st_xmin(a) AND st_ymin(b) >= st_ymin(a) AND st_zmin(b) >= st_zmin(a) THEN
-      IF st_xmax(b) <= st_xmax(a) AND st_ymax(b) <= st_ymax(a) AND st_zmax(b) <= st_zmax(a) THEN
-        RETURN true;
-      END IF;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry << b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_contained(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_left_wrap(a box3d, b geometry)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) >= st_xmin(b) AND st_ymin(a) >= st_ymin(b) AND st_zmin(a) >= st_zmin(b) THEN
-      IF st_xmax(a) <= st_xmax(b) AND st_ymax(a) <= st_ymax(b) AND st_zmax(a) <= st_zmax(b) THEN
-        RETURN true;
-      END IF;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry << b;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_below(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_left_wrap(a geometry, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_zmax(a) < st_zmin(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a << b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_overbelow(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_right_wrap(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_zmax(a) <= st_zmin(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry >> b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_overabove(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_right_wrap(a box3d, b geometry)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_zmin(a) >= st_zmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry >> b;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_above(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_right_wrap(a geometry, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_zmin(a) > st_zmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a >> b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
----------------------------------------------------------
--- the following functions has no physical sense, just --
--- because are required by support functions of BRINs  --
----------------------------------------------------------
-CREATE OR REPLACE FUNCTION is_less(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION intersects_wrap_3d(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmax(a) < st_xmin(b) AND st_ymax(a) < st_ymin(b) AND st_zmax(a) < st_zmin(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry &&& b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_lessorequal(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION intersects_wrap_3d(a box3d, b geometry)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmax(a) <= st_xmin(b) AND st_ymax(a) <= st_ymin(b) AND st_zmax(a) <= st_zmin(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry &&& b;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_greater(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION intersects_wrap_3d(a geometry, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) > st_xmax(b) AND st_ymin(a) > st_ymax(b) AND st_zmin(a) > st_zmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a &&& b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION is_greaterorequal(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_thesame_wrap(a box3d, b box3d)
 RETURNS boolean AS
 $$
   BEGIN
-    IF st_xmin(a) >= st_xmax(b) AND st_ymin(a) >= st_ymax(b) AND st_zmin(a) >= st_zmax(b) THEN
-      RETURN true;
-    END IF;
-
-    RETURN false;
+    RETURN a::geometry ~= b::geometry;
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION merge(a box3d, b box3d)
+CREATE OR REPLACE FUNCTION is_thesame_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry ~= b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_thesame_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a ~= b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION contains_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry ~ b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION contains_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry ~ b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION contains_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a ~ b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_contained_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry @ b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_contained_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry @ b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_contained_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a @ b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_below_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry <<| b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_below_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry <<| b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_below_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a <<| b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overbelow_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry &<| b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overbelow_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry &<| b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overbelow_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a &<| b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overabove_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry |&> b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overabove_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry |&> b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_overabove_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a |&> b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_above_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry |>> b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_above_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry |>> b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_above_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a |>> b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_less_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry < b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_less_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry < b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_less_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a < b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_lessorequal_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry <= b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_lessorequal_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry <= b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_lessorequal_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a <= b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greater_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry > b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greater_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry > b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greater_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a > b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greaterorequal_wrap(a box3d, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry >= b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greaterorequal_wrap(a box3d, b geometry)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a::geometry >= b;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION is_greaterorequal_wrap(a geometry, b box3d)
+RETURNS boolean AS
+$$
+  BEGIN
+    RETURN a >= b::geometry;
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION st_union_wrap(a box3d, b box3d)
 RETURNS box3d AS
 $$
-  DECLARE
-    xmin double precision := st_xmin(a);
-    ymin double precision := st_ymin(a);
-    zmin double precision := st_zmin(a);
-    xmax double precision := st_xmax(a);
-    ymax double precision := st_ymax(a);
-    zmax double precision := st_zmax(a);
   BEGIN
-    IF xmin > st_xmin(b) THEN
-      xmin := st_xmin(b);
-    END IF;
-    IF ymin > st_ymin(b) THEN
-      ymin := st_ymin(b);
-    END IF;
-    IF zmin > st_zmin(b) THEN
-      zmin := st_zmin(b);
-    END IF;
-    IF xmax < st_xmax(b) THEN
-      xmax := st_xmax(b);
-    END IF;
-    IF ymax < st_ymax(b) THEN
-      ymax := st_ymax(b);
-    END IF;
-    IF zmax < st_zmax(b) THEN
-      zmax := st_zmax(b);
-    END IF;
-
-    RETURN st_3dmakebox(st_makepoint(xmin, ymin, zmin), st_makepoint(xmax, ymax, zmax));
+    RETURN box3d(st_union(a::geometry, b::geometry));
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION isempty(a box3d)
+CREATE OR REPLACE FUNCTION st_isempty_wrap(a box3d)
 RETURNS boolean AS
 $$
   BEGIN
     RETURN st_isempty(a::geometry);
+  END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION box3d_wrap(a geometry)
+RETURNS box3d AS
+$$
+  BEGIN
+    RETURN box3d(a);
   END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
@@ -257,133 +417,383 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 CREATE OPERATOR &< (
   LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_overleft,
+  PROCEDURE  = is_overleft_wrap,
+  COMMUTATOR = << ,
+  NEGATOR    = >>
+);
+
+CREATE OPERATOR &< (
+  LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_overleft_wrap ,
+  COMMUTATOR = << ,
+  NEGATOR    = >>
+);
+
+CREATE OPERATOR &< (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_overleft_wrap ,
   COMMUTATOR = << ,
   NEGATOR    = >>
 );
 
 CREATE OPERATOR &> (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_overright_wrap ,
+  COMMUTATOR = >> ,
+  NEGATOR    = <<
+);
+
+CREATE OPERATOR &> (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_overright,
+  PROCEDURE  = is_overright_wrap ,
+  COMMUTATOR = >> ,
+  NEGATOR    = <<
+);
+
+CREATE OPERATOR &> (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_overright_wrap ,
   COMMUTATOR = >> ,
   NEGATOR    = <<
 );
 
 CREATE OPERATOR << (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_left_wrap ,
+  COMMUTATOR = &< ,
+  NEGATOR    = >>
+);
+
+CREATE OPERATOR << (
+  LEFTARG    = geometry ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_left,
+  PROCEDURE  = is_left_wrap ,
+  COMMUTATOR = &< ,
+  NEGATOR    = >>
+);
+
+CREATE OPERATOR << (
+  LEFTARG    = box3d ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_left_wrap ,
   COMMUTATOR = &< ,
   NEGATOR    = >>
 );
 
 CREATE OPERATOR >> (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_right_wrap ,
+  COMMUTATOR = &> ,
+  NEGATOR    = <<
+);
+
+CREATE OPERATOR >> (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_right,
+  PROCEDURE  = is_right_wrap ,
+  COMMUTATOR = &> ,
+  NEGATOR    = <<
+);
+
+CREATE OPERATOR >> (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_right_wrap ,
   COMMUTATOR = &> ,
   NEGATOR    = <<
 );
 
 CREATE OPERATOR &&& (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = intersects_wrap_3d ,
+  COMMUTATOR = &&&
+);
+
+CREATE OPERATOR &&& (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = intersects ,
+  PROCEDURE  = intersects_wrap_3d ,
+  COMMUTATOR = &&&
+);
+
+CREATE OPERATOR &&& (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = intersects_wrap_3d ,
   COMMUTATOR = &&&
 );
 
 CREATE OPERATOR ~= (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_thesame_wrap ,
+  COMMUTATOR = ~=
+);
+
+CREATE OPERATOR ~= (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_thesame,
+  PROCEDURE  = is_thesame_wrap ,
+  COMMUTATOR = ~=
+);
+
+CREATE OPERATOR ~= (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_thesame_wrap ,
   COMMUTATOR = ~=
 );
 
 CREATE OPERATOR ~ (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = contains_wrap ,
+  COMMUTATOR = ~
+);
+
+CREATE OPERATOR ~ (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = contains,
+  PROCEDURE  = contains_wrap ,
+  COMMUTATOR = ~
+);
+
+CREATE OPERATOR ~ (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = contains_wrap ,
   COMMUTATOR = ~
 );
 
 CREATE OPERATOR @ (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_contained_wrap ,
+  COMMUTATOR = @
+);
+
+CREATE OPERATOR @ (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_contained,
+  PROCEDURE  = is_contained_wrap ,
+  COMMUTATOR = @
+);
+
+CREATE OPERATOR @ (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_contained_wrap ,
   COMMUTATOR = @
 );
 
 CREATE OPERATOR <<| (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_below_wrap ,
+  COMMUTATOR = &<| ,
+  NEGATOR    = |>>
+);
+
+CREATE OPERATOR <<| (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_below,
+  PROCEDURE  = is_below_wrap ,
+  COMMUTATOR = &<| ,
+  NEGATOR    = |>>
+);
+
+CREATE OPERATOR <<| (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_below_wrap ,
   COMMUTATOR = &<| ,
   NEGATOR    = |>>
 );
 
 CREATE OPERATOR &<| (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_overbelow_wrap ,
+  COMMUTATOR = <<| ,
+  NEGATOR    = |>>
+);
+
+CREATE OPERATOR &<| (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_overbelow,
+  PROCEDURE  = is_overbelow_wrap ,
+  COMMUTATOR = <<| ,
+  NEGATOR    = |>>
+);
+
+CREATE OPERATOR &<| (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_overbelow_wrap ,
   COMMUTATOR = <<| ,
   NEGATOR    = |>>
 );
 
 CREATE OPERATOR |&> (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_overabove_wrap ,
+  COMMUTATOR = |>> ,
+  NEGATOR    = <<|
+);
+
+CREATE OPERATOR |&> (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_overabove,
+  PROCEDURE  = is_overabove_wrap ,
+  COMMUTATOR = |>> ,
+  NEGATOR    = <<|
+);
+
+CREATE OPERATOR |&> (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_overabove_wrap ,
   COMMUTATOR = |>> ,
   NEGATOR    = <<|
 );
 
 CREATE OPERATOR |>> (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_above_wrap ,
+  COMMUTATOR = |&> ,
+  NEGATOR    = <<|
+);
+
+CREATE OPERATOR |>> (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_above,
+  PROCEDURE  = is_above_wrap ,
+  COMMUTATOR = |&> ,
+  NEGATOR    = <<|
+);
+
+CREATE OPERATOR |>> (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_above_wrap ,
   COMMUTATOR = |&> ,
   NEGATOR    = <<|
 );
 
 CREATE OPERATOR < (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_less_wrap ,
+  COMMUTATOR = <= ,
+  NEGATOR    = >
+);
+
+CREATE OPERATOR < (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_less,
+  PROCEDURE  = is_less_wrap ,
+  COMMUTATOR = <= ,
+  NEGATOR    = >
+);
+
+CREATE OPERATOR < (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_less_wrap ,
   COMMUTATOR = <= ,
   NEGATOR    = >
 );
 
 CREATE OPERATOR <= (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_lessorequal_wrap ,
+  COMMUTATOR = < ,
+  NEGATOR    = >
+);
+
+CREATE OPERATOR <= (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_lessorequal,
+  PROCEDURE  = is_lessorequal_wrap ,
+  COMMUTATOR = < ,
+  NEGATOR    = >
+);
+
+CREATE OPERATOR <= (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_lessorequal_wrap ,
   COMMUTATOR = < ,
   NEGATOR    = >
 );
 
 CREATE OPERATOR > (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_greater_wrap,
+  COMMUTATOR = >= ,
+  NEGATOR    = <
+);
+
+CREATE OPERATOR > (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_greater,
+  PROCEDURE  = is_greater_wrap,
+  COMMUTATOR = >= ,
+  NEGATOR    = <
+);
+
+CREATE OPERATOR > (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_greater_wrap,
   COMMUTATOR = >= ,
   NEGATOR    = <
 );
 
 CREATE OPERATOR >= (
   LEFTARG    = box3d ,
+  RIGHTARG   = geometry ,
+  PROCEDURE  = is_greaterorequal_wrap ,
+  COMMUTATOR = > ,
+  NEGATOR    = <
+);
+
+CREATE OPERATOR >= (
+  LEFTARG    = box3d ,
   RIGHTARG   = box3d ,
-  PROCEDURE  = is_greaterorequal,
+  PROCEDURE  = is_greaterorequal_wrap ,
+  COMMUTATOR = > ,
+  NEGATOR    = <
+);
+
+CREATE OPERATOR >= (
+  LEFTARG    = geometry ,
+  RIGHTARG   = box3d ,
+  PROCEDURE  = is_greaterorequal_wrap ,
   COMMUTATOR = > ,
   NEGATOR    = <
 );
 
 -------------------------
--- Create operator class
+-- Create operator family
 -------------------------
 
+CREATE OPERATOR FAMILY brin_geometry_inclusion_family USING brin;
+
 CREATE OPERATOR CLASS brin_geometry_inclusion_ops_box3d
-       FOR TYPE box3d USING brin AS
+       FOR TYPE box3d USING brin FAMILY brin_geometry_inclusion_family AS
   OPERATOR        1        &<(box3d,box3d) ,
   OPERATOR        2        >>(box3d,box3d) ,
   OPERATOR        3        &&&(box3d,box3d) ,
@@ -404,6 +814,74 @@ CREATE OPERATOR CLASS brin_geometry_inclusion_ops_box3d
   FUNCTION        2        brin_inclusion_add_value(internal, internal, internal, internal) ,
   FUNCTION        3        brin_inclusion_consistent(internal, internal, internal) ,
   FUNCTION        4        brin_inclusion_union(internal, internal, internal) ,
-  FUNCTION        11       merge(box3d, box3d) ,
-  FUNCTION        13       contains(box3d, box3d) ,
-  FUNCTION        14       isempty(box3d) ;
+  FUNCTION        11       st_union_wrap(box3d, box3d) ,
+  FUNCTION        13       contains_wrap(box3d, box3d) ,
+  FUNCTION        14       st_isempty_wrap(box3d);
+
+CREATE OPERATOR CLASS brin_geometry_inclusion_ops_geom
+	FOR TYPE geometry  USING brin FAMILY brin_geometry_inclusion_family AS
+  OPERATOR        1        &<(geometry,geometry) ,
+  OPERATOR        2        >>(geometry,geometry) ,
+  OPERATOR        3        &&&(geometry,geometry) ,
+  OPERATOR        4        &>(geometry,geometry) ,
+  OPERATOR        5        <<(geometry,geometry) ,
+  OPERATOR        6        ~=(geometry,geometry) ,
+  OPERATOR        7        ~(geometry,geometry) ,
+  OPERATOR        8        @(geometry,geometry) ,
+  OPERATOR        9        <<|(geometry,geometry) ,
+  OPERATOR        10       &<|(geometry,geometry) ,
+  OPERATOR        11       |&>(geometry,geometry) ,
+  OPERATOR        12       |>>(geometry,geometry) ,
+  OPERATOR        20       <(geometry,geometry) ,
+  OPERATOR        21       <=(geometry,geometry) ,
+  OPERATOR        22       >(geometry,geometry) ,
+  OPERATOR        23       >=(geometry,geometry) ,
+  FUNCTION        1        brin_inclusion_opcinfo(internal) ,
+  FUNCTION        2        brin_inclusion_add_value(internal, internal, internal, internal) ,
+  FUNCTION        3        brin_inclusion_consistent(internal, internal, internal) ,
+  FUNCTION        4        brin_inclusion_union(internal, internal, internal) ,
+  FUNCTION        11       st_union(geometry, geometry) ,
+  FUNCTION        13       st_contains(geometry, geometry) ,
+  FUNCTION        14       st_isempty(geometry),
+  FUNCTION        15       box3d_wrap(geometry),
+  STORAGE box3d;
+
+ALTER OPERATOR FAMILY brin_geometry_inclusion_family USING brin ADD
+  -- cross type comparisons geometry vs box3d
+  OPERATOR        1        &<(geometry,box3d) ,
+  OPERATOR        2        >>(geometry,box3d) ,
+  OPERATOR        3        &&&(geometry,box3d) ,
+  OPERATOR        4        &>(geometry,box3d) ,
+  OPERATOR        5        <<(geometry,box3d) ,
+  OPERATOR        6        ~=(geometry,box3d) ,
+  OPERATOR        7        ~(geometry,box3d) ,
+  OPERATOR        8        @(geometry,box3d) ,
+  OPERATOR        9        <<|(geometry,box3d) ,
+  OPERATOR        10       &<|(geometry,box3d) ,
+  OPERATOR        11       |&>(geometry,box3d) ,
+  OPERATOR        12       |>>(geometry,box3d) ,
+  OPERATOR        20       <(geometry,box3d) ,
+  OPERATOR        21       <=(geometry,box3d) ,
+  OPERATOR        22       >(geometry,box3d) ,
+  OPERATOR        23       >=(geometry,box3d) ,
+
+  -- cross type comparisons box3d vs geometry
+  OPERATOR        1        &<(box3d,geometry) ,
+  OPERATOR        2        >>(box3d,geometry) ,
+  OPERATOR        3        &&&(box3d,geometry) ,
+  OPERATOR        4        &>(box3d,geometry) ,
+  OPERATOR        5        <<(box3d,geometry) ,
+  OPERATOR        6        ~=(box3d,geometry) ,
+  OPERATOR        7        ~(box3d,geometry) ,
+  OPERATOR        8        @(box3d,geometry) ,
+  OPERATOR        9        <<|(box3d,geometry) ,
+  OPERATOR        10       &<|(box3d,geometry) ,
+  OPERATOR        11       |&>(box3d,geometry) ,
+  OPERATOR        12       |>>(box3d,geometry) ,
+  OPERATOR        20       <(box3d,geometry) ,
+  OPERATOR        21       <=(box3d,geometry) ,
+  OPERATOR        22       >(box3d,geometry) ,
+  OPERATOR        23       >=(box3d,geometry);
+
+
+
